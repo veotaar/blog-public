@@ -26,9 +26,7 @@ function Index() {
 
   return (
     <div
-      className={cn(
-        'mx-auto flex max-w-screen-md flex-col gap-4 overflow-hidden text-ellipsis whitespace-nowrap bg-background p-4',
-      )}
+      className={cn('mx-auto flex max-w-screen-md flex-col gap-4 overflow-hidden text-ellipsis whitespace-nowrap p-4')}
     >
       <ArticleList data={loaderData.data} />
       <Paginator currentPage={page as number} totalPages={loaderData.data.totalPages} pagesAroundCurrent={2} />
