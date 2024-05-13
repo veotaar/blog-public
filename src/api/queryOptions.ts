@@ -1,6 +1,7 @@
 import { queryOptions, QueryClient, useMutation } from '@tanstack/react-query';
 import { getArticles } from './getArticles';
 import { getArticle } from './getArticle';
+import { getCommentStatus } from './getCommentStatus';
 import { createComment } from './createComment';
 import { useRouter } from '@tanstack/react-router';
 
@@ -17,6 +18,13 @@ export const articleQueryOptions = (postId: string) => {
   return queryOptions({
     queryKey: ['article', { id: postId }],
     queryFn: () => getArticle(postId),
+  });
+};
+
+export const commentsQueryOptions = () => {
+  return queryOptions({
+    queryKey: ['settings', 'comment'],
+    queryFn: () => getCommentStatus(),
   });
 };
 

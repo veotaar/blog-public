@@ -1,4 +1,4 @@
-import { formatDistanceToNowStrict, format } from 'date-fns';
+import { formatDistanceToNowStrict } from 'date-fns';
 import { decode } from 'html-entities';
 import { cn } from '@/lib/utils';
 
@@ -15,8 +15,7 @@ const Comment = ({ id, author, content, createdAt }: CommentProps) => {
       <div>
         <p>
           <span className="font-bold">{author}</span>{' '}
-          <span className="text-muted-foreground">{formatDistanceToNowStrict(createdAt, { addSuffix: true })}</span>{' '}
-          <span className="text-muted-foreground">{format(createdAt, 'yyyy.MM.dd  kk:mm:ss')}</span>
+          <span className="text-muted-foreground">{formatDistanceToNowStrict(createdAt, { addSuffix: true })}</span>
         </p>
         <p className="text-neutral-600 dark:text-neutral-300">{decode(content)}</p>
       </div>

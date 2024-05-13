@@ -6,6 +6,7 @@ import { ChevronLeft } from 'lucide-react';
 // import { buttonVariants } from '@/components/ui/button';
 import buttonVariants from '@/components/ui/buttonVariants';
 import { articleQueryOptions } from '@/api/queryOptions';
+import { commentsQueryOptions } from '@/api/queryOptions';
 import { z } from 'zod';
 import { cn } from '../lib/utils';
 
@@ -24,7 +25,10 @@ export const Route = createFileRoute('/$postId')({
   component: Post,
   validateSearch: postsSearchSchema,
   loader: async ({ params, context }) => {
-    return await context.queryClient.ensureQueryData(articleQueryOptions(params.postId));
+    return await Promise.all([
+      context.queryClient.ensureQueryData(articleQueryOptions(params.postId)),
+      context.queryClient.ensureQueryData(commentsQueryOptions()),
+    ]);
   },
 });
 
@@ -33,7 +37,8 @@ function Post() {
   const loaderData = Route.useLoaderData();
   const { postId } = Route.useParams();
 
-  const { title, author, content, commentCount, comments, createdAt, updatedAt } = loaderData.data.post;
+  const { title, author, content, commentCount, comments, createdAt, updatedAt } = loaderData[0].data.post;
+  const { allowComments } = loaderData[1].data;
 
   const markdownComponentOptions = {
     code: CodeBlock,
@@ -56,39 +61,39 @@ function Post() {
           <span>Go back to posts</span>
         </Link>
       </div>
-      <div className="mx-auto flex w-full gap-6 px-6 py-4 text-muted-foreground">
-        <div>
-          <p>Article Title:</p>
-          <p>Author:</p>
-          <p>Created:</p>
-          <p>Last modified:</p>
+
+      <div className="max-w-screen-lg overflow-hidden text-ellipsis rounded border bg-card p-2 py-16 shadow-sm">
+        <div className="mx-auto mb-4 max-w-screen-sm">
+          <p className="font-bold">By {author ? author.username : 'deleted user'}</p>
+          <div className="flex gap-2 text-sm">
+            <p>{format(createdAt, 'PPp')}</p>
+            <p>{createdAt === updatedAt ? '' : `• updated ${format(updatedAt, 'PPp')}`}</p>
+          </div>
         </div>
-        <div>
-          <p className="italic">{title}</p>
-          <p>{author ? author.username : 'deleted user'}</p>
-          <p>{format(createdAt, 'yyyy/MM/dd, kk:mm:ss, zzzz')}</p>
-          <p>{format(updatedAt, 'yyyy/MM/dd, kk:mm:ss, zzzz')}</p>
-        </div>
-      </div>
-      <div className="max-w-screen-lg overflow-hidden text-ellipsis rounded border bg-card p-2 py-8">
-        <div className="flex justify-center py-8">
+        <div className="flex justify-center">
           <Markdown
             remarkPlugins={[remarkGfm]}
-            className="prose w-full max-w-screen-sm dark:prose-invert"
+            className="prose w-full max-w-screen-sm dark:prose-invert prose-th:text-left"
             components={markdownComponentOptions}
           >
-            {content}
+            {`# ${title}\n${content}`}
           </Markdown>
         </div>
       </div>
-      <div
-        className={cn(
-          'flex flex-col items-center gap-4 overflow-hidden text-ellipsis rounded border bg-background p-2 pb-8',
-        )}
-      >
-        <p className="text-lg">Join the discussion</p>
-        <CommentForm postId={postId} page={page} disabled={commentCount >= 20} />
-      </div>
+
+      {allowComments ? (
+        <div
+          className={cn(
+            'flex flex-col items-center gap-4 overflow-hidden text-ellipsis rounded border bg-background p-2 pb-8',
+          )}
+        >
+          <p className="text-lg">Join the discussion</p>
+          <CommentForm postId={postId} page={page} disabled={commentCount >= 20} />
+        </div>
+      ) : (
+        <p className="text-center text-lg">New comments are not allowed at this time.</p>
+      )}
+
       <div className="mb-8 flex flex-col items-center gap-2 p-2">
         <p className="text-lg">{commentCount > 0 ? 'Comments' : 'There are no comments yet'}</p>
         <div
@@ -99,6 +104,7 @@ function Post() {
           {commentCount > 0
             ? comments.map((comment) => (
                 <Comment
+                  key={comment.id}
                   id={comment.id}
                   author={comment.author}
                   content={comment.content}

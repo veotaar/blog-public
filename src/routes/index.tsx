@@ -24,6 +24,10 @@ function Index() {
     return <p>loading...</p>;
   }
 
+  if (loaderData.data.currentItemCount === 0) {
+    return <div className={cn('mx-auto max-w-screen-md p-4 text-center')}>There are no articles yet!</div>;
+  }
+
   return (
     <div
       className={cn('mx-auto flex max-w-screen-md flex-col gap-4 overflow-hidden text-ellipsis whitespace-nowrap p-4')}
